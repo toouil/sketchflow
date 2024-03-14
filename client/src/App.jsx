@@ -1,8 +1,12 @@
+import { useEffect } from "react";
 import Canvas from "./components/Canvas";
 import Ui from "./components/Ui";
 import { io } from "socket.io-client";
 
 function App() {
+  useEffect(() => {
+    console.log(import.meta.env.VITE_APP_SERVER_URL);
+  }, [])
   return (
     <>
       <Ui />
@@ -11,5 +15,5 @@ function App() {
   );
 }
 
-export const socket = io(import.meta.env.VITE_APP_SERVER_URL);
+export const socket = io("https://sketchflow.onrender.com");
 export default App;
