@@ -3,6 +3,8 @@ import Canvas from "./components/Canvas";
 import Ui from "./components/Ui";
 import { io } from "socket.io-client";
 
+console.log(import.meta.env.VITE_APP_SERVER_URL);
+
 function App() {
   useEffect(() => {
     console.log(import.meta.env.VITE_APP_SERVER_URL);
