@@ -1,0 +1,376 @@
+@font-face {
+  font-family: primaryFont;
+  src: url(../assets/fonts/Roboto-Bold.ttf);
+}
+
+@font-face {
+  font-family: secondaryFont;
+  src: url(../assets/fonts/Roboto-Medium.ttf);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: primaryFont;
+
+  user-select: none !important;
+}
+
+html {
+  --background: #ffffff;
+  --secondary-background: #f0f0f0;
+  --background-50: #ffffff80;
+
+  --primary-color: #1f1f22;
+}
+
+html {
+  --bg-size: 14px;
+
+  position: relative;
+  background: radial-gradient(
+    var(--secondary-background) 10%,
+    var(--background) 0
+  );
+  background-size: var(--bg-size) var(--bg-size);
+  background-repeat: repeat;
+
+  overflow: hidden;
+
+  min-height: 100vh;
+}
+
+body.lock-ui main.ui * {
+  pointer-events: none;
+}
+
+canvas#canvas {
+  position: fixed;
+  cursor: var(--canvas-cursor, "default");
+}
+
+main.ui {
+  position: fixed;
+  inset: 0;
+  z-index: 99 !important;
+  pointer-events: none;
+  padding: 20px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+main.ui header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+main.ui footer {
+  display: flex;
+  gap: 10px;
+}
+
+html::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #d2d2d2;
+  height: 1px;
+  width: 100%;
+  pointer-events: none;
+  z-index: -1;
+}
+html::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #d2d2d2;
+  width: 1px;
+  height: 100%;
+  pointer-events: none;
+  z-index: -1;
+}
+
+section {
+  pointer-events: all;
+  width: fit-content;
+
+  padding: 4px;
+  border: 1px solid var(--secondary-background);
+  border-radius: 8px;
+  background: var(--background-50);
+  backdrop-filter: blur(2px);
+
+  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+button:active {
+  border: 1px solid rgb(71, 114, 180) !important;
+}
+
+section.toolbar {
+  display: flex;
+}
+
+section.toolbar > div {
+  --gap: 5px;
+  display: flex;
+  gap: var(--gap);
+}
+
+section.toolbar > div:not(:last-child)::after {
+  content: "";
+  position: relative;
+  top: 0;
+  left: 0;
+  background: #c0c0c0;
+  width: 1px;
+  height: 60%;
+  border-radius: 50%;
+  margin: auto;
+  margin-right: var(--gap);
+}
+
+section.toolbar .toolbutton {
+  display: grid;
+  place-content: center;
+  color: var(--primary-color);
+
+  width: 30px;
+  height: 30px;
+
+  background: none;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+section.toolbar .toolbutton:hover {
+  background: rgba(224, 223, 255, 0.5);
+}
+
+section.toolbar .toolbutton.selected,
+section.toolbar .toolbutton.lock[data-lock="true"] {
+  color: #030064;
+  background: #e0dfffd5;
+}
+
+section.zoomOptions {
+  display: flex;
+  gap: 5px;
+}
+
+section.zoomOptions .zoom {
+  display: grid;
+  place-content: center;
+  color: var(--primary-color);
+
+  width: 30px;
+  height: 30px;
+
+  background: none;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1.1em;
+  font-weight: 900;
+}
+
+section.zoomOptions .zoom.text {
+  width: fit-content;
+  width: 4em !important;
+  font-size: 15px;
+}
+
+section.styleOptions {
+  position: fixed;
+  top: 80px;
+  left: 20px;
+  padding: 15px;
+
+  overflow: auto;
+  max-height: calc(100vh - 140px);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+section.styleOptions::-webkit-scrollbar {
+  width: 3px;
+}
+section.styleOptions::-webkit-scrollbar-thumb {
+  background: #ced4da;
+  border-radius: 100px;
+}
+
+section.styleOptions .group p {
+  font-size: 12px;
+  font-family: secondaryFont;
+  color: var(--primary-color);
+  margin-bottom: 5px;
+}
+
+section.styleOptions .group .innerGroup {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+section.styleOptions .group .innerGroup .itemButton {
+  position: relative;
+  border-radius: 5px;
+  box-sizing: content-box;
+  cursor: pointer;
+  color: var(--primary-color);
+
+  display: grid;
+  place-content: center;
+}
+
+section.styleOptions .group .innerGroup .itemButton.color {
+  border: 1px solid #81818179;
+  background: var(--color);
+  width: 20px;
+  height: 20px;
+}
+
+section.styleOptions .group .innerGroup .itemButton.color.selected::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  top: 0;
+  left: 0;
+  z-index: 55;
+  border: 1px solid rgb(71, 114, 180);
+  border-radius: 5px;
+  scale: 1.3;
+}
+
+section.styleOptions .group .innerGroup .itemButton.option.selected {
+  color: #0f0c69;
+  background: #c3c1ebd5;
+}
+
+section.styleOptions .group .innerGroup .itemButton.option {
+  border: 1px solid #bbc0c779;
+  background: #e4e8ea;
+  width: 30px;
+  height: 30px;
+}
+
+section.undoRedo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+section.undoRedo > button {
+  display: grid;
+  place-content: center;
+  color: var(--primary-color);
+
+  width: 30px;
+  height: 30px;
+
+  background: none;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+div.menu {
+  position: relative;
+  pointer-events: all;
+}
+
+div.menu .menuBtn {
+  display: grid;
+  place-content: center;
+  background: var(--secondary-background);
+  border: 1px solid #949494;
+  color: #808080;
+  border-radius: 10px;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+}
+
+div.menu .menuItems {
+  position: absolute;
+  background: var(--background);
+  margin-top: 10px;
+  z-index: 9999;
+  padding: 7px;
+  width: 250px;
+  display: flex;
+  flex-direction: column;
+}
+
+div.menu .menuItems .menuItem * {
+  pointer-events: none;
+}
+
+div.menu .menuItems .menuItem {
+  padding: 10px 10px;
+  display: flex;
+  gap: 7px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 5px;
+  font-family: secondaryFont;
+
+  color: #373737;
+}
+
+div.menu .menuItems .menuItem:hover {
+  background: var(--secondary-background);
+}
+
+.menuBlur {
+  position: fixed;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9998;
+  top: 0;
+  left: 0;
+}
+
+div.collaboration {
+  pointer-events: all;
+  z-index: 999;
+}
+
+.collaborateButton {
+  padding: 0 20px;
+  height: 40px;
+  border-radius: 7px;
+  border: 1px solid #6965db;
+  background: #6965db;
+  color: #ffffff;
+  font-family: secondaryFont;
+  cursor: pointer;
+}
+
+section.collaborationBox {
+  padding: 20px;
+  z-index: 99993;
+}
+
+div.collaborationBoxBack {
+  position: fixed;
+  inset: 0;
+  background: #00000061;
+  z-index: 99992;
+}
+
+div.collaborationContainer {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-content: center;
+}
