@@ -12,7 +12,7 @@ import {
 import { BACKGROUND_COLORS, STROKE_COLORS, STROKE_STYLES } from "../global/var";
 import { minmax } from "../helper/element";
 import useHistory from "../hooks/useHistory";
-import { socket } from "../App";
+import { socket } from "../api/socket";
 
 const AppContext = createContext();
 

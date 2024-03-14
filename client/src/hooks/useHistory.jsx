@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { socket } from "../App";
+import { socket } from "../api/socket";
 
 export default function useHistory(initialState, setSelectedElement) {
   const [history, setHistory] = useState([initialState]);
