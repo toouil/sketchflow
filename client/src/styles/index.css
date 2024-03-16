@@ -356,6 +356,11 @@ div.collaboration {
   cursor: pointer;
 }
 
+.collaborateButton.active {
+  border: 1px solid #54b435;
+  background: #54b435;
+}
+
 section.collaborationBox {
   padding: 20px;
   z-index: 99993;

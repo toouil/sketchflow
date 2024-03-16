@@ -1,24 +1,25 @@
 import { motion } from "framer-motion";
 import { Xmark } from "../assets/icons";
 import { useState } from "react";
+import { useAppContext } from "../provider/AppStates";
 
 export default function Collaboration() {
+  const { session, setSession } = useAppContext()
   const [openCollabBox, setOpenCollabBox] = useState(false);
-  const [session, setSession] = useState(false)
 
   return (
     <div className="collaboration">
       <button
         type="button"
-        className="collaborateButton"
-        onClick={() => setOpenCollabBox(true)}
+        className={"collaborateButton" + `${session ? " active" : ""}`}
+        onClick={() => setSession(prev => !prev)}
       >
         Share
       </button>
 
-      {openCollabBox && (
+      {/* {openCollabBox && (
         <CollaborationBoxx setOpenCollabBox={setOpenCollabBox} />
-      )}
+      )} */}
     </div>
   );
 }

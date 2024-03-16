@@ -15,7 +15,9 @@
     "perfect-freehand": "^1.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-router-dom": "^6.22.3",
     "socket.io-client": "^4.7.4",
+    "socket.io-msgpack-parser": "^3.0.2",
     "uuid": "^9.0.1"
   },
   "devDependencies": {

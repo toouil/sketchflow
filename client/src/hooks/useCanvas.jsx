@@ -29,7 +29,6 @@ export default function useCanvas() {
     selectedTool,
     setSelectedTool,
     action,
-    testElements,
     setAction,
     elements,
     setElements,
@@ -54,7 +53,7 @@ export default function useCanvas() {
   const [inCorner, setInCorner] = useState(false);
   const [padding, setPadding] = useState(minmax(10 / scale, [0.5, 50]));
   const [cursor, setCursor] = useState("default");
-  const [mouseAction, setMouseAction] = useState("none");
+  const [mouseAction, setMouseAction] = useState({ x: 0, y: 0 });
 
   const mousePosition = ({ clientX, clientY }) => {
     clientX = (clientX - translate.x * scale + scaleOffset.x) / scale;
@@ -68,7 +67,7 @@ export default function useCanvas() {
 
     if (inCorner) {
       setElements((prevState) => prevState);
-      setMouseAction("select");
+      setMouseAction({ x: event.clientX, y: event.clientY });
       setCursor(cornerCursor(inCorner.slug));
       setAction("resize-" + inCorner.slug);
       return;
@@ -88,7 +87,6 @@ export default function useCanvas() {
       const element = getElementPosition(clientX, clientY, elements);
 
       if (element) {
-        setMouseAction("select");
         const offsetX = clientX - element.x1;
         const offsetY = clientY - element.y1;
 
@@ -99,6 +97,7 @@ export default function useCanvas() {
           });
         } else {
           setElements((prevState) => prevState);
+          setMouseAction({ x: event.clientX, y: event.clientY });
           setSelectedElement({ ...element, offsetX, offsetY });
         }
         setAction("move");
@@ -124,7 +123,6 @@ export default function useCanvas() {
 
   const handleMouseMove = (event) => {
     const { clientX, clientY } = mousePosition(event);
-    setMouseAction("move");
 
     if (selectedElement) {
       setInCorner(
@@ -192,12 +190,15 @@ export default function useCanvas() {
     }
   };
 
-  const handleMouseUp = () => {
-    // if (mouseAction == "select") {
-    //   setMouseAction("none");
-    //   undoRedo();
-    //   return;
-    // }
+  const handleMouseUp = (event) => {
+    setAction("none");
+    lockUI(false);
+
+
+    if (event.clientX == mouseAction.x && event.clientY == mouseAction.y) {
+      setElements("prevState");
+      return;
+    }
 
     if (action == "draw") {
       const lastElement = elements.at(-1);
@@ -215,9 +216,6 @@ export default function useCanvas() {
       );
       updateElement(id, { x1, x2, y1, y2 }, setElements, elements, true);
     }
-
-    setAction("none");
-    lockUI(false);
   };
 
   const handleWheel = (event) => {
@@ -279,7 +277,6 @@ export default function useCanvas() {
     const keyDownFunction = (event) => {
       const { key, ctrlKey, metaKey, shiftKey } = event;
       const prevent = () => event.preventDefault();
-      console.log(key);
       if (selectedElement) {
         if (key == "Backspace" || key == "Delete") {
           prevent();

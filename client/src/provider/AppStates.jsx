@@ -18,23 +18,22 @@ const AppContext = createContext();
 
 const isElementsInLocal = () => {
   try {
-    return JSON.parse(localStorage.getItem("elements")) || [];
+    JSON.parse(localStorage.getItem("elements")).forEach(() => {});
+    return JSON.parse(localStorage.getItem("elements"));
   } catch (err) {
     return [];
   }
 };
 
-const initialElements = isElementsInLocal() || [];
+const initialElements = isElementsInLocal();
 
 export function AppContextProvider({ children }) {
+  const [session, setSession] = useState(null);
   const [selectedElement, setSelectedElement] = useState(null);
-  // const [elements, setElements] = useState(initialElements);
-  // const undo = () => {};
-  // const redo = () => {};
-  // const undoRedo = () => {};
   const [elements, setElements, undo, redo] = useHistory(
     initialElements,
-    setSelectedElement
+    setSelectedElement,
+    session
   );
   const [action, setAction] = useState("none");
   const [selectedTool, setSelectedTool] = useState("selection");
@@ -131,10 +130,12 @@ export function AppContextProvider({ children }) {
   ];
 
   useEffect(() => {
-    socket.on("receive-elements", (data) => {
-      setElements(data, "rr" ,false);
-    });
-  }, []);
+    if (session) {
+      socket.on("setElements", (data) => {
+        setElements(data, true, false);
+      });
+    }
+  }, [session]);
 
   return (
     <AppContext.Provider
@@ -161,6 +162,8 @@ export function AppContextProvider({ children }) {
         setSelectedElement,
         undo,
         redo,
+        session,
+        setSession,
       }}
     >
       {children}

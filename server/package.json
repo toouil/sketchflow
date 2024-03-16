@@ -14,7 +14,8 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.18.3",
-    "socket.io": "^4.7.4"
+    "socket.io": "^4.7.4",
+    "socket.io-msgpack-parser": "^3.0.2"
   },
   "devDependencies": {
     "nodemon": "^3.1.0"
