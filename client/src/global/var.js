@@ -1,21 +1,5 @@
 import { DashedLine, DottedLine, SolidLine } from "../assets/icons";
 
-export const SHORT_CUTS = [
-  [" "],
-  ["Backspace"],
-  ["Delete"],
-  ["Control", "d"],
-  ["Control", "z"],
-  ["Control", "y"],
-  ["Control", "s"],
-  ["Control", "S"],
-  ["Control", "Shift"],
-  ["ArrowLeft"],
-  ["ArrowRight"],
-  ["ArrowUp"],
-  ["ArrowDown"],
-];
-
 export const BACKGROUND_COLORS = [
   "transparent",
   "rgb(255, 201, 201)",

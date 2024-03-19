@@ -54,6 +54,7 @@ export default function useCanvas() {
   const [padding, setPadding] = useState(minmax(10 / scale, [0.5, 50]));
   const [cursor, setCursor] = useState("default");
   const [mouseAction, setMouseAction] = useState({ x: 0, y: 0 });
+  const [resizeOldDementions, setResizeOldDementions] = useState(null)
 
   const mousePosition = ({ clientX, clientY }) => {
     clientX = (clientX - translate.x * scale + scaleOffset.x) / scale;
@@ -66,10 +67,13 @@ export default function useCanvas() {
     lockUI(true);
 
     if (inCorner) {
+      setResizeOldDementions(getElementById(selectedElement.id, elements))
       setElements((prevState) => prevState);
       setMouseAction({ x: event.clientX, y: event.clientY });
       setCursor(cornerCursor(inCorner.slug));
-      setAction("resize-" + inCorner.slug);
+      setAction(
+        "resize-" + inCorner.slug + (event.shiftKey ? "-shiftkey" : "")
+      );
       return;
     }
 
@@ -177,12 +181,13 @@ export default function useCanvas() {
         y: prevState.y + y,
       }));
     } else if (action.startsWith("resize")) {
-      const resizeType = action.slice(7);
+      const resizeCorner = action.slice(7, 9);
+      const resizeType = action.slice(10) || "default";
       const s_element = getElementById(selectedElement.id, elements);
 
       updateElement(
         s_element.id,
-        resizeValue(resizeType, clientX, clientY, padding, s_element),
+        resizeValue(resizeCorner, resizeType, clientX, clientY, padding, s_element, mouseAction, resizeOldDementions),
         setElements,
         elements,
         true
@@ -193,7 +198,6 @@ export default function useCanvas() {
   const handleMouseUp = (event) => {
     setAction("none");
     lockUI(false);
-
 
     if (event.clientX == mouseAction.x && event.clientY == mouseAction.y) {
       setElements("prevState");

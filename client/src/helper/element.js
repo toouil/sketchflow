@@ -171,19 +171,41 @@ export function adjustCoordinates(element) {
   return { id, x1: minX, y1: minY, x2: maxX, y2: maxY };
 }
 
-export function resizeValue(corner, x, y, padding, { x1, x2, y1, y2 }) {
+export function resizeValue(
+  corner,
+  type,
+  x,
+  y,
+  padding,
+  { x1, x2, y1, y2 },
+  offset,
+  elementOffset
+) {
   const getPadding = (condition) => {
     return condition ? padding : padding * -1;
   };
 
+  const getType = (y, coordinate, originalCoordinate, eleOffset, te = false) => {
+    if (type == "default") return originalCoordinate;
+
+    const def = coordinate - y;
+    if (te) return eleOffset - def;
+    return eleOffset + def;
+  };
+
   switch (corner) {
-    case "t":
-      return { y1: y + getPadding(y < y2) };
-    case "b":
+    case "tt":
+      return {
+        y1: y + getPadding(y < y2),
+        y2: getType(y, offset.y, y2, elementOffset.y2),
+        x1: getType(y, offset.y, x1, elementOffset.x1, true),
+        x2: getType(y, offset.y, x2, elementOffset.x2),
+      };
+    case "bb":
       return { y2: y + getPadding(y < y1) };
-    case "r":
+    case "rr":
       return { x2: x + getPadding(x < x1) };
-    case "l":
+    case "ll":
       return { x1: x + getPadding(x < x2) };
     case "tl":
       return { x1: x + getPadding(x < x2), y1: y + getPadding(y < y2) };
@@ -193,9 +215,9 @@ export function resizeValue(corner, x, y, padding, { x1, x2, y1, y2 }) {
       return { x1: x + getPadding(x < x2), y2: y + getPadding(y < y1) };
     case "br":
       return { x2: x + getPadding(x < x1), y2: y + getPadding(y < y1) };
-    case "lc1":
+    case "l1":
       return { x1: x, y1: y };
-    case "lc2":
+    case "l2":
       return { x2: x, y2: y };
   }
 }

@@ -10,7 +10,7 @@ import {
   Arrow,
 } from "../assets/icons";
 import { BACKGROUND_COLORS, STROKE_COLORS, STROKE_STYLES } from "../global/var";
-import { minmax } from "../helper/element";
+import { getElementById, minmax } from "../helper/element";
 import useHistory from "../hooks/useHistory";
 import { socket } from "../api/socket";
 
@@ -32,7 +32,6 @@ export function AppContextProvider({ children }) {
   const [selectedElement, setSelectedElement] = useState(null);
   const [elements, setElements, undo, redo] = useHistory(
     initialElements,
-    setSelectedElement,
     session
   );
   const [action, setAction] = useState("none");
@@ -55,8 +54,14 @@ export function AppContextProvider({ children }) {
   });
 
   useEffect(() => {
-    localStorage.setItem("elements", JSON.stringify(elements));
-  }, [elements]);
+    if (session == null) {
+      localStorage.setItem("elements", JSON.stringify(elements));
+    }
+
+    if (!getElementById(selectedElement?.id, elements)) {
+      setSelectedElement(null);
+    }
+  }, [elements, session, selectedElement]);
 
   const onZoom = (delta) => {
     if (delta == "default") {

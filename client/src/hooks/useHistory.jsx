@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { socket } from "../api/socket";
 
-export default function useHistory(initialState, setSelectedElement, session) {
+export default function useHistory(initialState, session) {
   const [history, setHistory] = useState([initialState]);
   const [index, setIndex] = useState(0);
 
@@ -15,7 +15,7 @@ export default function useHistory(initialState, setSelectedElement, session) {
       setIndex(0);
 
       if (emit) {
-        socket.emit("getElements", newState);
+        socket.emit("getElements", { elements: newState, room: session });
       }
       return;
     }
@@ -38,18 +38,13 @@ export default function useHistory(initialState, setSelectedElement, session) {
     }
   };
 
-  const undo = () => {
-    if (index > 0) {
-      setIndex((prevState) => prevState - 1);
-      setSelectedElement(null);
-    }
-  };
-  const redo = () => {
-    if (index < history.length - 1) {
-      setIndex((prevState) => prevState + 1);
-      setSelectedElement(null);
-    }
-  };
+  const undo = () =>
+    setIndex((prevState) => (prevState > 0 ? prevState - 1 : prevState));
+
+  const redo = () =>
+    setIndex((prevState) =>
+      prevState < history.length - 1 ? prevState + 1 : prevState
+    );
 
   return [history[index], setState, undo, redo];
 }

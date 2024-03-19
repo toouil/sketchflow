@@ -85,12 +85,12 @@ export function getFocuseCorners(element, padding, position) {
       line: { fx, fy, fw, fh },
       corners: [
         {
-          slug: "lc1",
+          slug: "l1",
           x: fx - position,
           y: fy - position,
         },
         {
-          slug: "lc2",
+          slug: "l2",
           x: fw - position,
           y: fh - position,
         },
@@ -121,22 +121,22 @@ export function getFocuseCorners(element, padding, position) {
         y: fy + fh - position,
       },
       {
-        slug: "t",
+        slug: "tt",
         x: fx + fw / 2 - position,
         y: fy - position,
       },
       {
-        slug: "r",
+        slug: "rr",
         x: fx + fw - position,
         y: fy + fh / 2 - position,
       },
       {
-        slug: "l",
+        slug: "ll",
         x: fx - position,
         y: fy + fh / 2 - position,
       },
       {
-        slug: "b",
+        slug: "bb",
         x: fx + fw / 2 - position,
         y: fy + fh - position,
       },
@@ -249,11 +249,11 @@ export function inSelectedCorner(element, x, y, padding, scale) {
 
 export function cornerCursor(corner) {
   switch (corner) {
-    case "t":
-    case "b":
+    case "tt":
+    case "bb":
       return "s-resize";
-    case "l":
-    case "r":
+    case "ll":
+    case "rr":
       return "e-resize";
     case "tl":
     case "br":
@@ -261,8 +261,8 @@ export function cornerCursor(corner) {
     case "tr":
     case "bl":
       return "ne-resize";
-    case "lc1":
-    case "lc2":
+    case "l1":
+    case "l2":
       return "pointer";
   }
 }

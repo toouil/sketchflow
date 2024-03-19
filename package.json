@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "client": "cd client && npm run dev",
-    "server": "cd server && npm run dev"
+    "client": "npm --prefix client run dev",
+    "server": "npm --prefix server run dev"
   }
 }

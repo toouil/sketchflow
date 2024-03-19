@@ -1,12 +1,12 @@
-import Canvas from "./components/Canvas";
-import Ui from "./components/Ui";
+import { Route, Routes, Navigate } from "react-router-dom";
+import WorkSpace from "./views/WorkSpace";
 
 function App() {
   return (
-    <>
-      <Ui />
-      <Canvas />
-    </>
+    <Routes>
+      <Route path="/" element={<WorkSpace />} />
+      <Route path="*" element={<Navigate to="/" />} />
+    </Routes>
   );
 }
 
