@@ -7,7 +7,7 @@ import { socket } from "../api/socket";
 
 export default function WorkSpace() {
   const { setSession } = useAppContext();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     const room = searchParams.get("room");

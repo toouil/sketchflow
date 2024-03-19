@@ -10,7 +10,7 @@ export default function Collaboration() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { session, setSession } = useAppContext();
   const [open, setOpen] = useState(false);
-  const users = 12;
+  const users = 0;
 
   const startSession = () => {
     const sessionId = uuid();
@@ -23,6 +23,7 @@ export default function Collaboration() {
     searchParams.delete("room");
     socket.emit("leave", session);
     setSession(null);
+    setOpen(false);
     window.history.replaceState(null, null, "/");
   };
 
@@ -73,32 +74,26 @@ function SessionInfo({ endSession }) {
 
   return (
     <div className="collabInfo">
-      <div className="collaborationGroup">
-        <h2>Live collaboration</h2>
-      </div>
+      <h2>Live collaboration</h2>
 
-      <div className="collaborationGroup">
+      <div className="collabGroup">
+        <label htmlFor="collabUrl">Link</label>
         <div className="collabLink">
-          <label htmlFor="collabUrl">Link</label>
           <input
             id="collabUrl"
             type="url"
             value={window.location.href}
             disabled
           />
-        </div>
-        <div className="copyCollabLink">
           <button type="button" onClick={copy}>
             Copy link
           </button>
         </div>
       </div>
-      <div className="collaborationGroup">
-        <div className="endCollab">
-          <button type="button" onClick={endSession}>
-            Stop session
-          </button>
-        </div>
+      <div className="endCollab">
+        <button type="button" onClick={endSession}>
+          Stop session
+        </button>
       </div>
     </div>
   );

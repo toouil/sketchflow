@@ -362,7 +362,7 @@ div.collaboration {
   background: #54b435;
 }
 
-.collaborateButton.active::before {
+/* .collaborateButton.active::before {
   content: attr(data-users);
   position: absolute;
   top: 0;
@@ -379,7 +379,7 @@ div.collaboration {
 
   background: #73df4f;
   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.303);
-}
+} */
 
 section.collaborationBox {
   position: relative;
@@ -428,7 +428,8 @@ div.collaborationContainer {
   background-color: #8b8b8b5a;
 }
 
-.collabCreate {
+.collabCreate,
+.collabInfo {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -436,7 +437,7 @@ div.collaborationContainer {
   gap: 10px;
 }
 
-.collabCreate h2 {
+section.collaborationBox h2 {
   text-align: center;
   font-size: 25px;
   color: #6965db;
@@ -468,4 +469,58 @@ div.collaborationContainer {
     border: none;
     border-radius: 0;
   }
+}
+
+.collabGroup {
+  width: 100%;
+}
+
+.collabLink {
+  display: flex;
+  justify-content: space-between;
+  gap: 5px;
+  width: 100%;
+}
+
+.collabLink button {
+  font-family: secondaryFont;
+  padding: 10px 15px;
+  background: #6965db;
+  border: 1px solid #6965db;
+  border-radius: 7px;
+  color: #ffffff;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.collabLink input {
+  font-family: secondaryFont;
+  padding: 10px 15px;
+  border: 1px solid #5c5c5c;
+  border-radius: 7px;
+  color: #494949;
+  font-size: 12px;
+  flex-grow: 1;
+}
+
+.collabInfo {
+  width: 100%;
+}
+
+.collabGroup label {
+  display: block;
+  font-size: 15px;
+  color: var(--primary-color);
+  margin-bottom: 5px;
+}
+
+.endCollab button {
+  font-family: secondaryFont;
+  padding: 10px 20px;
+  background: none;
+  border: 1px solid #d72727;
+  border-radius: 7px;
+  color: #d72727;
+  font-size: 14px;
+  cursor: pointer;
 }

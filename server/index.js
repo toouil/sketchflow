@@ -35,7 +35,6 @@ io.on("connection", (socket) => {
   });
 
   socket.on("getElements", ({ elements, room }) => {
-    console.log(socket.rooms.size === 0);
     socket.to(room).emit("setElements", elements);
   });
 });
