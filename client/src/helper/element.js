@@ -228,7 +228,7 @@ export function saveElements(elements) {
   const url = URL.createObjectURL(blob);
 
   const link = document.createElement("a");
-  link.download = "canvas.kyrosDraw";
+  link.download = "canvas.sketchFlow";
   link.href = url;
   link.click();
 }

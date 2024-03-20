@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { useAppContext } from "../provider/AppStates";
 import Style from "./Style";
 import ToolBar from "./ToolBar";
@@ -6,6 +5,7 @@ import Zoom from "./Zoom";
 import UndoRedo from "./UndoRedo";
 import Menu from "./Menu";
 import Collaboration from "./Collaboration";
+import Credits from "./Credits";
 
 export default function Ui() {
   const { selectedElement, selectedTool, style } = useAppContext();
@@ -22,8 +22,13 @@ export default function Ui() {
       )}
 
       <footer>
-        <Zoom />
-        <UndoRedo />
+        <div>
+          <Zoom />
+          <UndoRedo />
+        </div>
+        <div>
+          <Credits />
+        </div>
       </footer>
     </main>
   );
