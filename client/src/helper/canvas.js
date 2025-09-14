@@ -51,6 +51,9 @@ export const shapes = {
       2 * Math.PI
     );
   },
+  image: () => {
+    console.log("image shape")
+  }
 };
 
 export function distance(a, b) {
@@ -200,7 +203,13 @@ export function draw(element, context) {
   if (strokeStyle == "dotted") context.setLineDash([strokeWidth, strokeWidth]);
   if (strokeStyle == "solid") context.setLineDash([0, 0]);
 
-  shapes[tool](x1, y1, x2, y2, context);
+  switch (tool) {
+    case "image" :
+      console.log("image tool")
+    default:
+      shapes[tool](x1, y1, x2, y2, context);
+  }
+
   context.fill();
   context.closePath();
   if (strokeWidth > 0) context.stroke();

@@ -11,7 +11,6 @@ export default function Canvas() {
   } = useCanvas();
 
   return (
-    <>
       <canvas
         id="canvas"
         ref={canvasRef}
@@ -22,6 +21,5 @@ export default function Canvas() {
         onMouseUp={handleMouseUp}
         onWheel={handleWheel}
       />
-    </>
   );
 }

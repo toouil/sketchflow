@@ -15,7 +15,7 @@ export default function useHistory(initialState, session) {
       setIndex(0);
 
       if (emit) {
-        socket.emit("getElements", { elements: newState, room: session });
+        socket.emit("getElements", { elements: newState, roomId: session });
       }
       return;
     }

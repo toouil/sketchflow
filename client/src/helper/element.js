@@ -1,6 +1,8 @@
 import { distance } from "./canvas";
 import { v4 as uuid } from "uuid";
 
+const fileNameExtention = ".sketchFlow"
+
 export function isWithinElement(x, y, element) {
   let { tool, x1, y1, x2, y2, strokeWidth } = element;
 
@@ -152,7 +154,9 @@ export function arrowMove(s_element, x, y, setState) {
 }
 
 export function minmax(value, interval) {
-  return Math.max(Math.min(value, interval[1]), interval[0]);
+  if (value == Infinity) return interval[1]
+  if (value == -Infinity) return interval[0]
+  return Math.max(interval[0], Math.min(value, interval[1]));
 }
 
 export function getElementById(id, elements) {
@@ -228,7 +232,7 @@ export function saveElements(elements) {
   const url = URL.createObjectURL(blob);
 
   const link = document.createElement("a");
-  link.download = "canvas.sketchFlow";
+  link.download = "canvas" + fileNameExtention;
   link.href = url;
   link.click();
 }
@@ -252,7 +256,7 @@ export function uploadElements(setElements) {
 
   const fileInput = document.createElement("input");
   fileInput.type = "file";
-  fileInput.accept = ".kyrosDraw";
+  fileInput.accept = fileNameExtention;
   fileInput.onchange = uploadJSON;
   fileInput.click();
 }

@@ -8,11 +8,19 @@ import {
 } from "../helper/element";
 import { useAppContext } from "../provider/AppStates";
 import { BACKGROUND_COLORS, STROKE_COLORS, STROKE_STYLES } from "../global/var";
-import { Backward, Delete, Duplicate, Forward, ToBack, ToFront } from "../assets/icons";
+import {
+  Backward,
+  Delete,
+  Duplicate,
+  Forward,
+  ToBack,
+  ToFront,
+} from "../assets/icons";
 
 export default function Style({ selectedElement }) {
   const { elements, setElements, setSelectedElement, setStyle } =
     useAppContext();
+    
   const [elementStyle, setElementStyle] = useState({
     fill: selectedElement?.fill,
     strokeWidth: selectedElement?.strokeWidth,
@@ -184,12 +192,7 @@ export default function Style({ selectedElement }) {
                 className="itemButton option"
                 title="Send to back"
                 onClick={() =>
-                  moveElementLayer(
-                    selectedElement.id,
-                    0,
-                    setElements,
-                    elements
-                  )
+                  moveElementLayer(selectedElement.id, 0, setElements, elements)
                 }
               >
                 <ToBack />

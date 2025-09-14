@@ -8,7 +8,7 @@ import { socket } from "../api/socket";
 
 export default function Collaboration() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { session, setSession } = useAppContext();
+  const { session, setSession, elements } = useAppContext();
   const [open, setOpen] = useState(false);
   const users = 0;
 
@@ -16,7 +16,7 @@ export default function Collaboration() {
     const sessionId = uuid();
     setSearchParams({ room: sessionId });
     setSession(sessionId);
-    socket.emit("join", sessionId);
+    console.log(sessionId)
   };
 
   const endSession = () => {

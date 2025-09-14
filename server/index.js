@@ -18,6 +18,8 @@ app.use(
 
 const server = http.createServer(app);
 
+const rooms = {}
+
 const io = new Server(server, {
   parser,
   cors: {
@@ -26,22 +28,29 @@ const io = new Server(server, {
 });
 
 io.on("connection", (socket) => {
-  socket.on("join", (room) => {
-    socket.join(room);
+  socket.on("join", ({room: roomId, elements}) => {
+    socket.join(roomId);
+
+    if (rooms[roomId]) {
+      socket.emit("initElements", rooms[roomId]);
+    } else {
+      rooms[roomId] = elements;
+    }
   });
 
-  socket.on("leave", (room) => {
-    socket.leave(room);
+  socket.on("leave", (roomId) => {
+    socket.leave(roomId);
   });
 
-  socket.on("getElements", ({ elements, room }) => {
-    socket.to(room).emit("setElements", elements);
+  socket.on("getElements", ({ elements, roomId }) => {
+    socket.to(roomId).emit("setElements", elements);
+    rooms[roomId] = elements;
   });
 });
 
 app.get("/", (req, res) => {
   res.send(
-    `<marquee>To try the app visite : <a href="${CLIENT_URL}">${CLIENT_URL}</a></marquee>`
+    `To try the app visite : <a href="${CLIENT_URL}">${CLIENT_URL}</a>`
   );
 });
 

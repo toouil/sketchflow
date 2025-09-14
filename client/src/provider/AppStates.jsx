@@ -54,9 +54,7 @@ export function AppContextProvider({ children }) {
   });
 
   useEffect(() => {
-    if (session == null) {
-      localStorage.setItem("elements", JSON.stringify(elements));
-    }
+    localStorage.setItem("elements", JSON.stringify(elements));
 
     if (!getElementById(selectedElement?.id, elements)) {
       setSelectedElement(null);
@@ -68,6 +66,7 @@ export function AppContextProvider({ children }) {
       setScale(1);
       return;
     }
+
     setScale((prevState) => minmax(prevState + delta, [0.1, 20]));
   };
 
@@ -130,8 +129,8 @@ export function AppContextProvider({ children }) {
         icon: Line,
         title: "Line",
         toolAction,
-      },
-    ],
+      }
+    ]
   ];
 
   useEffect(() => {

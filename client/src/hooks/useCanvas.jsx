@@ -224,7 +224,9 @@ export default function useCanvas() {
 
   const handleWheel = (event) => {
     if (event.ctrlKey) {
-      onZoom(event.deltaY * -0.01);
+      const factor = Math.abs(30 - scale)
+      const step = event.deltaY < 0 ? scale / factor : -(scale / factor)
+      onZoom(step);
       return;
     }
 
