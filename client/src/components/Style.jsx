@@ -27,7 +27,13 @@ export default function Style({ selectedElement }) {
     strokeStyle: selectedElement?.strokeStyle,
     strokeColor: selectedElement?.strokeColor,
     opacity: selectedElement?.opacity,
+    borderRadius: selectedElement?.borderRadius,
   });
+
+  const tt = () => { 
+    console.log('elementStyle.borderRadius');
+    return elementStyle.borderRadius 
+  }
 
   useEffect(() => {
     setElementStyle({
@@ -36,6 +42,7 @@ export default function Style({ selectedElement }) {
       strokeStyle: selectedElement?.strokeStyle,
       strokeColor: selectedElement?.strokeColor,
       opacity: selectedElement?.opacity,
+      borderRadius: selectedElement?.borderRadius,
     });
   }, [selectedElement]);
 
@@ -157,6 +164,31 @@ export default function Style({ selectedElement }) {
         </div>
       </div>
       <div className="group opacity">
+        <p>Angles</p>
+        <div className="innerGroup">
+          <input
+            type="range"
+            min={0}
+            max={100}
+            className="itemRange"
+            value={elementStyle.borderRadius}
+            onChange={({ target }) => {
+              setStylesStates({
+                borderRadius: minmax(+target.value, [0, 100]),
+              });
+              updateElement(
+                selectedElement.id,
+                {
+                  borderRadius: minmax(+target.value, [0, 100]),
+                },
+                setElements,
+                elements
+              );
+            }}
+          />
+        </div>
+      </div>
+      <div className="group opacity">
         <p>Opacity</p>
         <div className="innerGroup">
           <input
@@ -182,7 +214,7 @@ export default function Style({ selectedElement }) {
           />
         </div>
       </div>
-      {selectedElement?.id && (
+      {selectedElement && (
         <React.Fragment>
           <div className="group layers">
             <p>Layers</p>

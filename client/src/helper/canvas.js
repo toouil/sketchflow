@@ -1,5 +1,7 @@
+const imageCache = new Map();
+
 export const shapes = {
-  arrow: (x1, y1, x2, y2, ctx) => {
+  arrow: ({ x1, y1, x2, y2 }, ctx) => {
     const headlen = 5;
     const angle = Math.atan2(y2 - y1, x2 - x1);
 
@@ -23,22 +25,50 @@ export const shapes = {
       y2 - headlen * Math.sin(angle - Math.PI / 7)
     );
   },
-  line: (x1, y1, x2, y2, ctx) => {
+
+  line: ({ x1, y1, x2, y2 }, ctx) => {
+    ctx.beginPath();
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
   },
-  rectangle: (x1, y1, x2, y2, ctx) => {
-    ctx.rect(x1, y1, x2 - x1, y2 - y1);
+
+  rectangle: ({ x1, y1, x2, y2, borderRadius }, ctx) => {
+    const left = Math.min(x1, x2);
+    const right = Math.max(x1, x2);
+    const top = Math.min(y1, y2);
+    const bottom = Math.max(y1, y2);
+
+    const width = right - left;
+    const height = bottom - top;
+
+    const r = Math.min(borderRadius, width / 2, height / 2);
+
+    ctx.beginPath();
+    ctx.moveTo(left + r, top); // top-left
+    ctx.lineTo(right - r, top);
+    ctx.quadraticCurveTo(right, top, right, top + r);
+    ctx.lineTo(right, bottom - r);
+    ctx.quadraticCurveTo(right, bottom, right - r, bottom); // bottom-right
+    ctx.lineTo(left + r, bottom);
+    ctx.quadraticCurveTo(left, bottom, left, bottom - r); // bottom-left
+    ctx.lineTo(left, top + r);
+    ctx.quadraticCurveTo(left, top, left + r, top); // back to top-left
+    ctx.closePath();
   },
-  diamond: (x1, y1, x2, y2, ctx) => {
+
+  diamond: ({ x1, y1, x2, y2 }, ctx) => {
+    ctx.beginPath();
     const width = x2 - x1;
     const height = y2 - y1;
     ctx.moveTo(x1 + width / 2, y1);
     ctx.lineTo(x2, y1 + height / 2);
     ctx.lineTo(x1 + width / 2, y2);
     ctx.lineTo(x1, y1 + height / 2);
+    ctx.closePath();
   },
-  circle: (x1, y1, x2, y2, ctx) => {
+
+  circle: ({ x1, y1, x2, y2 }, ctx) => {
+    ctx.beginPath();
     const width = x2 - x1;
     const height = y2 - y1;
     ctx.ellipse(
@@ -50,11 +80,56 @@ export const shapes = {
       0,
       2 * Math.PI
     );
+    ctx.closePath();
   },
-  image: () => {
-    console.log("image shape")
+  image: ({ id, x1, y1, x2, y2, image, borderRadius = 0 }, ctx) => {
+  let cached = imageCache.get(id);
+
+  const left = Math.min(x1, x2);
+  const top = Math.min(y1, y2);
+  const width = Math.abs(x2 - x1);
+  const height = Math.abs(y2 - y1);
+
+  // helper: draw rounded rect path
+  const clipRoundedRect = (ctx, x, y, w, h, r) => {
+    r = Math.min(r, w / 2, h / 2); // clamp radius
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+  };
+
+  const drawWithRadius = (img) => {
+    ctx.save();
+    if (borderRadius > 0) {
+      clipRoundedRect(ctx, left, top, width, height, borderRadius);
+      ctx.clip();
+    }
+    ctx.drawImage(img, left, top, width, height);
+    ctx.restore();
+  };
+
+  if (cached) {
+    drawWithRadius(cached);
+    return;
   }
+
+  cached = new Image();
+  cached.src = image;
+  cached.onload = () => {
+    drawWithRadius(cached);
+    imageCache.set(id, cached);
+  };
+}
 };
+
 
 export function distance(a, b) {
   return Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2));
@@ -180,13 +255,8 @@ export function drawFocuse(element, context, padding, scale) {
 }
 
 export function draw(element, context) {
-  context.beginPath();
   const {
     tool,
-    x1,
-    y1,
-    x2,
-    y2,
     strokeWidth,
     strokeColor,
     strokeStyle,
@@ -194,26 +264,30 @@ export function draw(element, context) {
     opacity,
   } = element;
 
+  context.beginPath();
   context.lineWidth = strokeWidth;
-  context.strokeStyle = rgba(strokeColor, opacity);
-  context.fillStyle = rgba(fill, opacity);
+  context.strokeStyle = strokeColor;
+  context.fillStyle = fill;
 
-  if (strokeStyle == "dashed")
+  context.globalAlpha = opacity * 0.01;
+
+  if (strokeStyle === "dashed")
     context.setLineDash([strokeWidth * 2, strokeWidth * 2]);
-  if (strokeStyle == "dotted") context.setLineDash([strokeWidth, strokeWidth]);
-  if (strokeStyle == "solid") context.setLineDash([0, 0]);
+  else if (strokeStyle === "dotted")
+    context.setLineDash([strokeWidth, strokeWidth]);
+  else context.setLineDash([0, 0]);
 
-  switch (tool) {
-    case "image" :
-      console.log("image tool")
-    default:
-      shapes[tool](x1, y1, x2, y2, context);
+  if (tool === "image") {
+    shapes.image(element, context);
+  } else {
+    shapes[tool](element, context);
+    context.fill();
+    if (strokeWidth > 0) context.stroke();
   }
-
-  context.fill();
+  
   context.closePath();
-  if (strokeWidth > 0) context.stroke();
 }
+
 
 function rgba(color, opacity) {
   if (color == "transparent") return "transparent";

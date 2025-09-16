@@ -36,6 +36,7 @@ export function isWithinElement(x, y, element) {
         1
       );
 
+    case "image":
     case "diamond":
     case "rectangle":
       const minX = Math.min(x1, x2) - strokeWidth / 2;
@@ -51,8 +52,8 @@ export function getElementPosition(x, y, elements) {
   return elements.filter((element) => isWithinElement(x, y, element)).at(-1);
 }
 
-export function createElement(x1, y1, x2, y2, style, tool) {
-  return { id: uuid(), x1, y1, x2, y2, ...style, tool };
+export function createElement(x1, y1, x2, y2, style, tool, image = null) {
+  return { id: uuid(), x1, y1, x2, y2, ...style, tool, image };
 }
 
 export function updateElement(
@@ -154,8 +155,6 @@ export function arrowMove(s_element, x, y, setState) {
 }
 
 export function minmax(value, interval) {
-  if (value == Infinity) return interval[1]
-  if (value == -Infinity) return interval[0]
   return Math.max(interval[0], Math.min(value, interval[1]));
 }
 

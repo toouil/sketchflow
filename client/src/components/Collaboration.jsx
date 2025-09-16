@@ -16,7 +16,6 @@ export default function Collaboration() {
     const sessionId = uuid();
     setSearchParams({ room: sessionId });
     setSession(sessionId);
-    console.log(sessionId)
   };
 
   const endSession = () => {
@@ -32,10 +31,10 @@ export default function Collaboration() {
       <button
         data-users={users > 99 ? "99+" : users}
         type="button"
-        className={"collaborateButton" + `${session ? " active" : ""}`}
+        className={"sectionStyle collaborateButton" + `${session ? " active" : ""}`}
         onClick={() => setOpen(true)}
       >
-        Share
+        {`Share${session ? "d" : ""}`}
       </button>
 
       {open && (

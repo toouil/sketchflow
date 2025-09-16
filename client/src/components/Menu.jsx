@@ -9,13 +9,13 @@ export default function Menu() {
 
   return (
     <div className="menu">
-      <button
-        className="menuBtn"
-        type="button"
-        onClick={() => setShow((prev) => !prev)}
-      >
-        {show ? <Xmark /> : <MenuIcon />}
-      </button>
+        <button
+          className="menuBtn sectionStyle"
+          type="button"
+          onClick={() => setShow((prev) => !prev)}
+          >
+          {show ? <Xmark /> : <MenuIcon />}
+        </button>
 
       {show && <MenuBox elements={elements} setElements={setElements} setShow={setShow} />}
     </div>

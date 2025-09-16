@@ -102,7 +102,7 @@ html::after {
   z-index: -1;
 }
 
-section {
+section, .sectionStyle {
   pointer-events: all;
   width: fit-content;
 
@@ -297,8 +297,6 @@ div.menu {
 div.menu .menuBtn {
   display: grid;
   place-content: center;
-  background: var(--secondary-background);
-  border: 1px solid #949494;
   color: #808080;
   border-radius: 10px;
   width: 40px;
@@ -356,9 +354,8 @@ div.collaboration {
   position: relative;
   padding: 0 20px;
   height: 40px;
-  border-radius: 7px;
   border: 1px solid #6965db;
-  background: #6965db;
+  background: rgba(73, 67, 243, 0.5);
   color: #ffffff;
   font-family: secondaryFont;
   cursor: pointer;
@@ -366,7 +363,7 @@ div.collaboration {
 
 .collaborateButton.active {
   border: 1px solid #54b435;
-  background: #54b435;
+  background: rgba(97, 226, 54, 0.5);
 }
 
 /* .collaborateButton.active::before {

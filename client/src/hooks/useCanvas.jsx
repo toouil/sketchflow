@@ -54,7 +54,7 @@ export default function useCanvas() {
   const [padding, setPadding] = useState(minmax(10 / scale, [0.5, 50]));
   const [cursor, setCursor] = useState("default");
   const [mouseAction, setMouseAction] = useState({ x: 0, y: 0 });
-  const [resizeOldDementions, setResizeOldDementions] = useState(null)
+  const [resizeOldDementions, setResizeOldDementions] = useState(null);
 
   const mousePosition = ({ clientX, clientY }) => {
     clientX = (clientX - translate.x * scale + scaleOffset.x) / scale;
@@ -67,7 +67,7 @@ export default function useCanvas() {
     lockUI(true);
 
     if (inCorner) {
-      setResizeOldDementions(getElementById(selectedElement.id, elements))
+      setResizeOldDementions(getElementById(selectedElement.id, elements));
       setElements((prevState) => prevState);
       setMouseAction({ x: event.clientX, y: event.clientY });
       setCursor(cornerCursor(inCorner.slug));
@@ -187,7 +187,16 @@ export default function useCanvas() {
 
       updateElement(
         s_element.id,
-        resizeValue(resizeCorner, resizeType, clientX, clientY, padding, s_element, mouseAction, resizeOldDementions),
+        resizeValue(
+          resizeCorner,
+          resizeType,
+          clientX,
+          clientY,
+          padding,
+          s_element,
+          mouseAction,
+          resizeOldDementions
+        ),
         setElements,
         elements,
         true
@@ -224,8 +233,8 @@ export default function useCanvas() {
 
   const handleWheel = (event) => {
     if (event.ctrlKey) {
-      const factor = Math.abs(30 - scale)
-      const step = event.deltaY < 0 ? scale / factor : -(scale / factor)
+      const factor = Math.abs(10 - scale);
+      const step = event.deltaY < 0 ? scale / factor : -(scale / factor);
       onZoom(step);
       return;
     }
@@ -243,8 +252,6 @@ export default function useCanvas() {
 
     const zoomPositionX = 2;
     const zoomPositionY = 2;
-    // const zoomPositionX = scaleMouse ? canvas.width / scaleMouse.x : 2;
-    // const zoomPositionY = scaleMouse ? canvas.height / scaleMouse.y : 2;
 
     const scaledWidth = canvas.width * scale;
     const scaledHeight = canvas.height * scale;
@@ -346,6 +353,67 @@ export default function useCanvas() {
   useEffect(() => {
     if (selectedTool != "selection") {
       setSelectedElement(null);
+    }
+
+    if (selectedTool == "image") {
+      const fileInput = document.createElement("input");
+      fileInput.type = "file";
+      fileInput.accept = "image/*";
+      fileInput.id = "fileInput";
+      fileInput.click();
+
+      fileInput.addEventListener("change", (event) => {
+        const { clientX, clientY } = mousePosition({
+          clientX: canvasRef.current.width / 2,
+          clientY: canvasRef.current.height / 2,
+        });
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const maxSize = 3 * 1024 * 1024; // 3MB
+        if (file.size > maxSize) {
+          alert("File is too big! Please select an image under 3MB.");
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const base64 = e.target.result;
+
+          const img = new Image();
+          img.src = base64;
+
+          img.onload = () => {
+            const maxW = window.innerWidth / 1.5;
+            const maxH = window.innerHeight / 1.5;
+            let w = img.width;
+            let h = img.height;
+
+            const img_scale = Math.min(maxW / w, maxH / h, 1);
+            const width = w * img_scale;
+            const height = h * img_scale;
+
+            const x1 = clientX - width / 2;
+            const y1 = clientY - height / 2;
+            const x2 = clientX + width / 2;
+            const y2 = clientY + height / 2;
+
+            const element = createElement(
+              x1,
+              y1,
+              x2,
+              y2,
+              { ...style, strokeWidth: 0 },
+              selectedTool,
+              base64
+            );
+            setElements((prevState) => [...prevState, element]);
+          };
+        };
+        reader.readAsDataURL(file);
+      });
+
+      setSelectedTool("selection");
     }
   }, [selectedTool]);
 

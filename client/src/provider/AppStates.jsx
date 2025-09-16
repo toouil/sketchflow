@@ -8,6 +8,7 @@ import {
   Hand,
   Lock,
   Arrow,
+  Image,
 } from "../assets/icons";
 import { BACKGROUND_COLORS, STROKE_COLORS, STROKE_STYLES } from "../global/var";
 import { getElementById, minmax } from "../helper/element";
@@ -51,10 +52,16 @@ export function AppContextProvider({ children }) {
     strokeStyle: STROKE_STYLES[0].slug,
     fill: BACKGROUND_COLORS[0],
     opacity: 100,
+    borderRadius: 0
   });
 
   useEffect(() => {
-    localStorage.setItem("elements", JSON.stringify(elements));
+    try {
+      localStorage.setItem("elements", JSON.stringify(elements));
+    } catch (err) {
+      alert("We couldn’t save your last action. Try again.");
+      return;
+    }
 
     if (!getElementById(selectedElement?.id, elements)) {
       setSelectedElement(null);
@@ -129,6 +136,12 @@ export function AppContextProvider({ children }) {
         icon: Line,
         title: "Line",
         toolAction,
+      },
+      {
+        slug: "image",
+        icon: Image,
+        title: "Image",
+        toolAction,
       }
     ]
   ];
@@ -167,7 +180,7 @@ export function AppContextProvider({ children }) {
         undo,
         redo,
         session,
-        setSession,
+        setSession
       }}
     >
       {children}

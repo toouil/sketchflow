@@ -339,6 +339,7 @@ export const Image = () => (
     <path d="m21 15-5-5L5 21" />
   </svg>
 );
+
 export const Github = () => (
   <svg
     height={demention}
