@@ -1,10 +1,30 @@
 import { distance } from "./canvas";
 import { v4 as uuid } from "uuid";
 
-const fileNameExtention = ".sketchFlow"
+const fileNameExtention = ".sketchFlow";
+
+function pointToSegmentDistance(px, py, ax, ay, bx, by) {
+  const dx = bx - ax;
+  const dy = by - ay;
+
+  if (dx === 0 && dy === 0) {
+    // A and B are the same point
+    return Math.hypot(px - ax, py - ay);
+  }
+
+  // Project point P onto segment AB, normalized between 0 and 1
+  let t = ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy);
+  t = Math.max(0, Math.min(1, t));
+
+  // Find closest point
+  const cx = ax + t * dx;
+  const cy = ay + t * dy;
+
+  return Math.hypot(px - cx, py - cy);
+}
 
 export function isWithinElement(x, y, element) {
-  let { tool, x1, y1, x2, y2, strokeWidth } = element;
+  let { tool, x1, y1, x2, y2, strokeWidth, points } = element;
 
   switch (tool) {
     case "arrow":
@@ -39,12 +59,25 @@ export function isWithinElement(x, y, element) {
     case "image":
     case "diamond":
     case "rectangle":
+    case "text":
       const minX = Math.min(x1, x2) - strokeWidth / 2;
       const maxX = Math.max(x1, x2) + strokeWidth / 2;
       const minY = Math.min(y1, y2) - strokeWidth / 2;
       const maxY = Math.max(y1, y2) + strokeWidth / 2;
 
       return x >= minX && x <= maxX && y >= minY && y <= maxY;
+
+    case "pencil":
+      for (let i = 0; i < points.length - 1; i++) {
+        const p1 = points[i];
+        const p2 = points[i + 1];
+
+        const dist = pointToSegmentDistance(x, y, p1.x, p1.y, p2.x, p2.y);
+        if (dist <= strokeWidth / 2 + 2) {
+          return true;
+        }
+      }
+      return false;
   }
 }
 
@@ -52,8 +85,27 @@ export function getElementPosition(x, y, elements) {
   return elements.filter((element) => isWithinElement(x, y, element)).at(-1);
 }
 
-export function createElement(x1, y1, x2, y2, style, tool, image = null) {
-  return { id: uuid(), x1, y1, x2, y2, ...style, tool, image };
+export function createElement({
+  id = uuid(),
+  x1,
+  y1,
+  x2,
+  y2,
+  style,
+  tool,
+  image,
+  text,
+}) {
+  switch (tool) {
+    case "pencil":
+      return { id, points: [{ x: x1, y: y1 }], x1, y1, x2, y2, ...style, tool };
+    case "text":
+      return { id, x1, y1, x2, y2, ...style, tool, text };
+    case "image":
+      return { id, x1, y1, x2, y2, ...style, tool, image };
+    default:
+      return { id, x1, y1, x2, y2, ...style, tool };
+  }
 }
 
 export function updateElement(
@@ -63,14 +115,15 @@ export function updateElement(
   state,
   overwrite = false
 ) {
-  const index = state.findIndex((ele) => ele.id == id);
-
-  const stateCopy = [...state];
-
-  stateCopy[index] = {
-    ...stateCopy[index],
-    ...stateOption,
-  };
+  const stateCopy = state.map(ele => {
+    if (ele.id == id) {
+      return {
+        ...ele,
+        ...stateOption,
+      }
+    }
+    return ele
+  });
 
   setState(stateCopy, overwrite);
 }
@@ -174,6 +227,32 @@ export function adjustCoordinates(element) {
   return { id, x1: minX, y1: minY, x2: maxX, y2: maxY };
 }
 
+function resizeFreehand(element, newBox) {
+  if (element.tool != "pencil") return newBox;
+
+  const { x1, y1, x2, y2, points } = element;
+  const oldW = x2 - x1;
+  const oldH = y2 - y1;
+  const newW = newBox.x2 - newBox.x1;
+  const newH = newBox.y2 - newBox.y1;
+
+  const scaleX = newW / oldW;
+  const scaleY = newH / oldH;
+
+  const newPoints = points.map((p) => ({
+    x: newBox.x1 + (p.x - x1) * scaleX,
+    y: newBox.y1 + (p.y - y1) * scaleY,
+  }));
+
+  return {
+    points: newPoints,
+    x1: newBox.x1,
+    y1: newBox.y1,
+    x2: newBox.x2,
+    y2: newBox.y2,
+  };
+}
+
 export function resizeValue(
   corner,
   type,
@@ -188,36 +267,63 @@ export function resizeValue(
     return condition ? padding : padding * -1;
   };
 
-  const getType = (y, coordinate, originalCoordinate, eleOffset, te = false) => {
-    if (type == "default") return originalCoordinate;
-
-    const def = coordinate - y;
-    if (te) return eleOffset - def;
-    return eleOffset + def;
-  };
-
   switch (corner) {
     case "tt":
-      return {
+      return resizeFreehand(elementOffset, {
         y1: y + getPadding(y < y2),
-        y2: getType(y, offset.y, y2, elementOffset.y2),
-        x1: getType(y, offset.y, x1, elementOffset.x1, true),
-        x2: getType(y, offset.y, x2, elementOffset.x2),
-      };
+        x1,
+        x2,
+        y2,
+      });
     case "bb":
-      return { y2: y + getPadding(y < y1) };
+      return resizeFreehand(elementOffset, {
+        y2: y + getPadding(y < y1),
+        x1,
+        x2,
+        y1,
+      });
     case "rr":
-      return { x2: x + getPadding(x < x1) };
+      return resizeFreehand(elementOffset, {
+        x2: x + getPadding(x < x1),
+        x1,
+        y1,
+        y2,
+      });
     case "ll":
-      return { x1: x + getPadding(x < x2) };
+      return resizeFreehand(elementOffset, {
+        x1: x + getPadding(x < x2),
+        x2,
+        y1,
+        y2,
+      });
     case "tl":
-      return { x1: x + getPadding(x < x2), y1: y + getPadding(y < y2) };
+      return resizeFreehand(elementOffset, {
+        x1: x + getPadding(x < x2),
+        y1: y + getPadding(y < y2),
+        x2,
+        y2,
+      });
     case "tr":
-      return { x2: x + getPadding(x < x1), y1: y + getPadding(y < y2) };
+      return resizeFreehand(elementOffset, {
+        x2: x + getPadding(x < x1),
+        y1: y + getPadding(y < y2),
+        x1,
+        y2,
+      });
     case "bl":
-      return { x1: x + getPadding(x < x2), y2: y + getPadding(y < y1) };
+      return resizeFreehand(elementOffset, {
+        x1: x + getPadding(x < x2),
+        y2: y + getPadding(y < y1),
+        x2,
+        y1,
+      });
     case "br":
-      return { x2: x + getPadding(x < x1), y2: y + getPadding(y < y1) };
+      return resizeFreehand(elementOffset, {
+        x2: x + getPadding(x < x1),
+        y2: y + getPadding(y < y1),
+        x1,
+        y1,
+      });
     case "l1":
       return { x1: x, y1: y };
     case "l2":

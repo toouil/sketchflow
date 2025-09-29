@@ -547,3 +547,16 @@ section.credits {
 #credits:hover {
   text-decoration: underline;
 }
+
+
+textarea.textBox {
+  all: unset;
+  width: 50px;
+  height: 30px;
+  position: fixed;
+  font: 30px Arial;
+  resize: none;
+  overflow: hidden;
+  white-space: pre;
+  margin-top: -6px;
+}

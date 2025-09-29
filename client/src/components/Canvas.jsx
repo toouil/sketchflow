@@ -8,6 +8,7 @@ export default function Canvas() {
     handleMouseMove,
     handleMouseUp,
     handleWheel,
+    handleDoubleClick
   } = useCanvas();
 
   return (
@@ -20,6 +21,7 @@ export default function Canvas() {
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onWheel={handleWheel}
+        onDoubleClick={handleDoubleClick}
       />
   );
 }

@@ -8,7 +8,7 @@ import { socket } from "../api/socket";
 
 export default function Collaboration() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { session, setSession, elements } = useAppContext();
+  const { session, setSession } = useAppContext();
   const [open, setOpen] = useState(false);
   const users = 0;
 

@@ -1,4 +1,9 @@
-const imageCache = new Map();
+export const imageCache = new Map();
+let textWriting = null;
+
+export const writing = (id) => {
+  textWriting = id
+}
 
 export const shapes = {
   arrow: ({ x1, y1, x2, y2 }, ctx) => {
@@ -82,54 +87,65 @@ export const shapes = {
     );
     ctx.closePath();
   },
-  image: ({ id, x1, y1, x2, y2, image, borderRadius = 0 }, ctx) => {
-  let cached = imageCache.get(id);
+  image: ({ id, x1, y1, x2, y2, image }, ctx) => {
+    let cached = imageCache.get(id);
 
-  const left = Math.min(x1, x2);
-  const top = Math.min(y1, y2);
-  const width = Math.abs(x2 - x1);
-  const height = Math.abs(y2 - y1);
+    const left = Math.min(x1, x2);
+    const top = Math.min(y1, y2);
+    const width = Math.abs(x2 - x1);
+    const height = Math.abs(y2 - y1);
 
-  // helper: draw rounded rect path
-  const clipRoundedRect = (ctx, x, y, w, h, r) => {
-    r = Math.min(r, w / 2, h / 2); // clamp radius
-    ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.lineTo(x + w - r, y);
-    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-    ctx.lineTo(x + w, y + h - r);
-    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-    ctx.lineTo(x + r, y + h);
-    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-    ctx.lineTo(x, y + r);
-    ctx.quadraticCurveTo(x, y, x + r, y);
-    ctx.closePath();
-  };
-
-  const drawWithRadius = (img) => {
-    ctx.save();
-    if (borderRadius > 0) {
-      clipRoundedRect(ctx, left, top, width, height, borderRadius);
-      ctx.clip();
+    if (cached) {
+      ctx.drawImage(cached, left, top, width, height);
+      return;
     }
-    ctx.drawImage(img, left, top, width, height);
-    ctx.restore();
-  };
 
-  if (cached) {
-    drawWithRadius(cached);
-    return;
-  }
+    cached = new Image();
+    cached.src = image;
+    cached.onload = () => {
+      ctx.drawImage(cached, left, top, width, height);
+      imageCache.set(id, cached);
+    };
+  },
+  pencil: ({ points, strokeWidth }, ctx) => {
+    if (points.length < 2) return;
 
-  cached = new Image();
-  cached.src = image;
-  cached.onload = () => {
-    drawWithRadius(cached);
-    imageCache.set(id, cached);
-  };
-}
+    ctx.beginPath();
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
+    ctx.moveTo(points[0].x, points[0].y);
+
+    for (let i = 1; i < points.length - 1; i++) {
+      const midX = (points[i].x + points[i + 1].x) / 2;
+      const midY = (points[i].y + points[i + 1].y) / 2;
+      ctx.quadraticCurveTo(points[i].x, points[i].y, midX, midY);
+    }
+
+    const lastpoint = points[points.length - 1];
+
+    if (
+      !(
+        Math.abs(lastpoint.x - points[0].x) < strokeWidth &&
+        Math.abs(lastpoint.y - points[0].y) < strokeWidth
+      )
+    ) {
+      ctx.fillStyle = "transparent";
+    }
+    ctx.lineTo(lastpoint.x, lastpoint.y);
+  },
+  text: ({ id, x1, y1, text }, ctx) => {
+    if (id == textWriting)  return;
+    ctx.font = "30px Arial";
+    ctx.textBaseline = "top";
+
+    const textLines = text.split("\n");
+
+    textLines.forEach((line, index) => {
+      ctx.fillText(line, x1, y1 + 30 * index); // x=100, y=50
+    });
+  },
 };
-
 
 export function distance(a, b) {
   return Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2));
@@ -223,6 +239,8 @@ export function getFocuseCorners(element, padding, position) {
 }
 
 export function drawFocuse(element, context, padding, scale) {
+  if (!element) return;
+  context.beginPath();
   const lineWidth = 1 / scale;
   const square = 10 / scale;
   let round = square;
@@ -255,19 +273,13 @@ export function drawFocuse(element, context, padding, scale) {
 }
 
 export function draw(element, context) {
-  const {
-    tool,
-    strokeWidth,
-    strokeColor,
-    strokeStyle,
-    fill,
-    opacity,
-  } = element;
+  const { tool, strokeWidth, strokeColor, strokeStyle, fill, opacity } =
+    element;
 
   context.beginPath();
   context.lineWidth = strokeWidth;
   context.strokeStyle = strokeColor;
-  context.fillStyle = fill;
+  context.fillStyle = tool == "text" ? strokeColor : fill;
 
   context.globalAlpha = opacity * 0.01;
 
@@ -277,17 +289,12 @@ export function draw(element, context) {
     context.setLineDash([strokeWidth, strokeWidth]);
   else context.setLineDash([0, 0]);
 
-  if (tool === "image") {
-    shapes.image(element, context);
-  } else {
-    shapes[tool](element, context);
-    context.fill();
-    if (strokeWidth > 0) context.stroke();
-  }
-  
+  shapes[tool](element, context);
+  context.fill();
+  if (strokeWidth > 0) context.stroke();
+
   context.closePath();
 }
-
 
 function rgba(color, opacity) {
   if (color == "transparent") return "transparent";
@@ -312,6 +319,7 @@ function rgba(color, opacity) {
 }
 
 export function inSelectedCorner(element, x, y, padding, scale) {
+  if (!element) return null;
   padding = element.tool == "line" || element.tool == "arrow" ? 0 : padding;
 
   const square = 10 / scale;

@@ -7,7 +7,9 @@ import {
   drawFocuse,
   cornerCursor,
   inSelectedCorner,
+  imageCache,
 } from "../helper/canvas";
+
 import {
   adjustCoordinates,
   arrowMove,
@@ -23,6 +25,8 @@ import {
   uploadElements,
 } from "../helper/element";
 import useKeys from "./useKeys";
+import useTextArea from "./useTextArea";
+import { v4 } from "uuid";
 
 export default function useCanvas() {
   const {
@@ -55,12 +59,25 @@ export default function useCanvas() {
   const [cursor, setCursor] = useState("default");
   const [mouseAction, setMouseAction] = useState({ x: 0, y: 0 });
   const [resizeOldDementions, setResizeOldDementions] = useState(null);
+  const [rerender, setRerender] = useState(null)
+
+  const createTextArea = useTextArea()
 
   const mousePosition = ({ clientX, clientY }) => {
     clientX = (clientX - translate.x * scale + scaleOffset.x) / scale;
     clientY = (clientY - translate.y * scale + scaleOffset.y) / scale;
     return { clientX, clientY };
   };
+
+  const handleDoubleClick = (event) => {
+    const { clientX, clientY } = mousePosition(event);
+    const element = getElementPosition(clientX, clientY, elements);
+
+    if (element?.tool == "text") {
+      createTextArea(element, true)
+      setRerender(v4())
+    }
+  }
 
   const handleMouseDown = (event) => {
     const { clientX, clientY } = mousePosition(event);
@@ -102,7 +119,7 @@ export default function useCanvas() {
         } else {
           setElements((prevState) => prevState);
           setMouseAction({ x: event.clientX, y: event.clientY });
-          setSelectedElement({ ...element, offsetX, offsetY });
+          setSelectedElement({ ...element, offsetX, offsetY, lastPosX: clientX, lastPosY: clientY });
         }
         setAction("move");
       } else {
@@ -111,19 +128,31 @@ export default function useCanvas() {
 
       return;
     }
-
     setAction("draw");
 
-    const element = createElement(
-      clientX,
-      clientY,
-      clientX,
-      clientY,
+    const element = createElement({
+      x1 : clientX,
+      y1 : clientY,
+      x2 : clientX,
+      y2 : clientY,
       style,
-      selectedTool
+      tool : selectedTool,
+      text : ""
+    }
     );
     setElements((prevState) => [...prevState, element]);
   };
+
+  function getBoundingBox(points) {
+    const xs = points.map(p => p.x);
+    const ys = points.map(p => p.y);
+    return {
+      x1: Math.min(...xs),
+      y1: Math.min(...ys),
+      x2: Math.max(...xs),
+      y2: Math.max(...ys)
+    };
+  }
 
   const handleMouseMove = (event) => {
     const { clientX, clientY } = mousePosition(event);
@@ -131,7 +160,7 @@ export default function useCanvas() {
     if (selectedElement) {
       setInCorner(
         inSelectedCorner(
-          getElementById(selectedElement.id, elements),
+          getElementById(selectedElement.id, elements), 
           clientX,
           clientY,
           padding,
@@ -147,26 +176,45 @@ export default function useCanvas() {
     }
 
     if (action == "draw") {
-      const { id } = elements.at(-1);
+      const currentDrawingElement = elements.at(-1);
+      let newStateOptions = { x2: clientX, y2: clientY }
+      
+      if (currentDrawingElement.tool == "pencil") {
+        const points = [...currentDrawingElement.points, { x: clientX, y: clientY }]
+        newStateOptions = {
+          points,
+          ...getBoundingBox(points)
+        }
+      }
+      
       updateElement(
-        id,
-        { x2: clientX, y2: clientY },
+        currentDrawingElement.id,
+        newStateOptions,
         setElements,
         elements,
         true
       );
     } else if (action == "move") {
-      const { id, x1, y1, x2, y2, offsetX, offsetY } = selectedElement;
-
+      const { id, x1, y1, x2, y2, offsetX, offsetY, tool, lastPosX, lastPosY, points } = selectedElement;
+      
       const width = x2 - x1;
       const height = y2 - y1;
-
+      
       const nx = clientX - offsetX;
       const ny = clientY - offsetY;
 
+      let newStateOptions = { x1: nx, y1: ny, x2: nx + width, y2: ny + height }
+      
+      if (tool == "pencil") {
+        const nx = clientX - lastPosX;
+        const ny = clientY - lastPosY;
+
+        newStateOptions.points = points.map(p => ({ x: p.x + nx, y: p.y + ny }))
+      }
+
       updateElement(
         id,
-        { x1: nx, y1: ny, x2: nx + width, y2: ny + height },
+        newStateOptions,
         setElements,
         elements,
         true
@@ -217,10 +265,16 @@ export default function useCanvas() {
       const lastElement = elements.at(-1);
       const { id, x1, y1, x2, y2 } = adjustCoordinates(lastElement);
       updateElement(id, { x1, x2, y1, y2 }, setElements, elements, true);
-      if (!lockTool) {
-        setSelectedTool("selection");
-        setSelectedElement(lastElement);
+      
+      if (lastElement.tool == "text") {
+        createTextArea(lastElement)
       }
+
+      if (!lockTool && lastElement.tool !== "pencil") {
+        setSelectedTool("selection");
+        if (lastElement.tool !== "text") setSelectedElement(lastElement);
+      }
+      return
     }
 
     if (action.startsWith("resize")) {
@@ -228,6 +282,7 @@ export default function useCanvas() {
         getElementById(selectedElement.id, elements)
       );
       updateElement(id, { x1, x2, y1, y2 }, setElements, elements, true);
+      return
     }
   };
 
@@ -271,20 +326,21 @@ export default function useCanvas() {
     );
     context.scale(scale, scale);
 
-    let focusedElement = null;
-    elements.forEach((element) => {
-      draw(element, context);
-      if (element.id == selectedElement?.id) focusedElement = element;
-    });
-
     const pd = minmax(10 / scale, [0.5, 50]);
-    if (focusedElement != null) {
-      drawFocuse(focusedElement, context, pd, scale);
-    }
+    
+    elements.forEach((element) => {
+      if (element.id == selectedElement?.id) {
+        drawFocuse(element, context, pd, scale)
+      }
+      draw(element, context);
+    });
+    
     setPadding(pd);
 
     context.restore();
-  }, [elements, selectedElement, scale, translate, dimension]);
+  }, [elements, selectedElement, scale, translate, dimension, rerender]);
+
+  
 
   useEffect(() => {
     const keyDownFunction = (event) => {
@@ -362,11 +418,15 @@ export default function useCanvas() {
       fileInput.id = "fileInput";
       fileInput.click();
 
+      const fullWidth = canvasRef.current.width
+      const fullHeight = canvasRef.current.height
+
+      const { clientX, clientY } = mousePosition({
+        clientX: fullWidth / 2,
+        clientY: fullHeight / 2,
+      });
+
       fileInput.addEventListener("change", (event) => {
-        const { clientX, clientY } = mousePosition({
-          clientX: canvasRef.current.width / 2,
-          clientY: canvasRef.current.height / 2,
-        });
         const file = event.target.files[0];
         if (!file) return;
 
@@ -384,29 +444,32 @@ export default function useCanvas() {
           img.src = base64;
 
           img.onload = () => {
-            const maxW = window.innerWidth / 1.5;
-            const maxH = window.innerHeight / 1.5;
+            const maxW = fullWidth / scale / 1.5;
+            const maxH = fullHeight / scale / 1.5;
             let w = img.width;
             let h = img.height;
 
-            const img_scale = Math.min(maxW / w, maxH / h, 1);
-            const width = w * img_scale;
-            const height = h * img_scale;
+            const img_scale = Math.min(maxW / w, maxH / h);
+            const width = w * img_scale / 2;
+            const height = h * img_scale / 2;
 
-            const x1 = clientX - width / 2;
-            const y1 = clientY - height / 2;
-            const x2 = clientX + width / 2;
-            const y2 = clientY + height / 2;
+            const x1 = clientX - width;
+            const y1 = clientY - height;
+            const x2 = clientX + width;
+            const y2 = clientY + height;
 
-            const element = createElement(
+            const element = createElement({
               x1,
               y1,
               x2,
               y2,
-              { ...style, strokeWidth: 0 },
-              selectedTool,
-              base64
+              style : { ...style, strokeWidth: 0 },
+              tool : selectedTool,
+              image : base64
+            }
             );
+
+            imageCache.set(element.id, img);
             setElements((prevState) => [...prevState, element]);
           };
         };
@@ -466,6 +529,7 @@ export default function useCanvas() {
     handleMouseMove,
     handleMouseUp,
     handleWheel,
+    handleDoubleClick,
     dimension,
   };
 }

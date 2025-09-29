@@ -9,6 +9,8 @@ import {
   Lock,
   Arrow,
   Image,
+  Pencil,
+  Text,
 } from "../assets/icons";
 import { BACKGROUND_COLORS, STROKE_COLORS, STROKE_STYLES } from "../global/var";
 import { getElementById, minmax } from "../helper/element";
@@ -17,43 +19,55 @@ import { socket } from "../api/socket";
 
 const AppContext = createContext();
 
-const isElementsInLocal = () => {
-  try {
-    JSON.parse(localStorage.getItem("elements")).forEach(() => {});
-    return JSON.parse(localStorage.getItem("elements"));
-  } catch (err) {
-    return [];
-  }
-};
-
-const initialElements = isElementsInLocal();
-
-export function AppContextProvider({ children }) {
-  const [session, setSession] = useState(null);
-  const [selectedElement, setSelectedElement] = useState(null);
-  const [elements, setElements, undo, redo] = useHistory(
-    initialElements,
-    session
-  );
-  const [action, setAction] = useState("none");
-  const [selectedTool, setSelectedTool] = useState("selection");
-  const [translate, setTranslate] = useState({
+const defaultElements = []
+const defaultTranslate = {
     x: 0,
     y: 0,
     sx: 0,
     sy: 0,
-  });
-  const [scale, setScale] = useState(1);
-  const [scaleOffset, setScaleOffset] = useState({ x: 0, y: 0 });
-  const [lockTool, setLockTool] = useState(false);
-  const [style, setStyle] = useState({
+  }
+const defaultSelectedTool = "selection"
+const defaultScale = 1
+const defaultSelectedElement = null
+const defaultAction = "none"
+const defaultScaleOffset = { x: 0, y: 0 }
+const defaultSession = null
+const defaultLockTool = false
+const defaultStyle = {
     strokeWidth: 3,
     strokeColor: STROKE_COLORS[0],
     strokeStyle: STROKE_STYLES[0].slug,
     fill: BACKGROUND_COLORS[0],
     opacity: 100,
     borderRadius: 0
-  });
+  }
+
+const isElementsInLocal = () => {
+  try {
+    JSON.parse(localStorage.getItem("elements")).forEach(() => {});
+    return JSON.parse(localStorage.getItem("elements"));
+  } catch (err) {
+    return defaultElements;
+  }
+};
+
+const initialElements = isElementsInLocal();
+
+export function AppContextProvider({ children }) {
+  const [session, setSession] = useState(defaultSession);
+  const [selectedElement, setSelectedElement] = useState(defaultSelectedElement);
+  const [action, setAction] = useState(defaultAction);
+  const [selectedTool, setSelectedTool] = useState(defaultSelectedTool);
+  const [translate, setTranslate] = useState(defaultTranslate);
+  const [scale, setScale] = useState(defaultScale);
+  const [scaleOffset, setScaleOffset] = useState(defaultScaleOffset);
+  const [lockTool, setLockTool] = useState(defaultLockTool);
+  const [style, setStyle] = useState(defaultStyle);
+  const [elements, setElements, undo, redo] = useHistory(
+    initialElements,
+    session
+  );
+
 
   useEffect(() => {
     try {
@@ -138,6 +152,18 @@ export function AppContextProvider({ children }) {
         toolAction,
       },
       {
+        slug: "pencil",
+        icon: Pencil,
+        title: "Pencil",
+        toolAction,
+      },
+      {
+        slug: "text",
+        icon: Text,
+        title: "Text",
+        toolAction,
+      },
+      {
         slug: "image",
         icon: Image,
         title: "Image",
@@ -153,6 +179,18 @@ export function AppContextProvider({ children }) {
       });
     }
   }, [session]);
+
+  function setToDefault () {
+    setSelectedTool(defaultSelectedTool)
+    setAction(defaultAction)
+    setElements(defaultElements)
+    setTranslate(defaultTranslate)
+    setLockTool(defaultLockTool)
+    setScale(defaultScale)
+    setScaleOffset(defaultScaleOffset)
+    setStyle(defaultStyle)
+    setSession(defaultSession)
+  }
 
   return (
     <AppContext.Provider
@@ -180,7 +218,8 @@ export function AppContextProvider({ children }) {
         undo,
         redo,
         session,
-        setSession
+        setSession,
+        setToDefault
       }}
     >
       {children}
