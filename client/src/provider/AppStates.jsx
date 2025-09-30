@@ -67,6 +67,8 @@ export function AppContextProvider({ children }) {
     initialElements,
     session
   );
+  
+  const [rerender, setRerender] = useState(true)
 
 
   useEffect(() => {
@@ -219,7 +221,7 @@ export function AppContextProvider({ children }) {
         redo,
         session,
         setSession,
-        setToDefault
+        setToDefault,rerender, setRerender
       }}
     >
       {children}

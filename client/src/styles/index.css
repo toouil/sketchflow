@@ -102,7 +102,8 @@ html::after {
   z-index: -1;
 }
 
-section, .sectionStyle {
+section,
+.sectionStyle {
   pointer-events: all;
   width: fit-content;
 
@@ -548,15 +549,16 @@ section.credits {
   text-decoration: underline;
 }
 
-
 textarea.textBox {
   all: unset;
   width: 50px;
   height: 30px;
-  position: fixed;
+  position: absolute;
   font: 30px Arial;
-  resize: none;
   overflow: hidden;
   white-space: pre;
-  margin-top: -6px;
+  /* outline: none;
+  border: none;
+  background: none;
+  resize: none; */
 }

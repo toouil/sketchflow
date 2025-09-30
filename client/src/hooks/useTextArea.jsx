@@ -3,7 +3,7 @@ import { useAppContext } from "../provider/AppStates";
 import { writing } from "../helper/canvas";
 
 export default function useTextArea() {
-  const { elements, setElements, scale, translate, scaleOffset } = useAppContext();
+  const { elements, setElements, scale, translate, scaleOffset, setRerender } = useAppContext();
 
   const canvasToWindow = (clientX, clientY) => {
     const x = clientX * scale + translate.x * scale - scaleOffset.x;
@@ -26,7 +26,7 @@ export default function useTextArea() {
     textarea.textContent = text;
     document.body.appendChild(textarea);
     textarea.focus();
-    // textarea.selectionStart = text.length
+
     if (update) textarea.setSelectionRange(0, text.length)
 
     textarea.addEventListener("contextmenu", (e) => {
@@ -49,7 +49,7 @@ export default function useTextArea() {
       );
 
       const width = longest;
-      const height = lines.length * 30;
+      const height = textarea.scrollHeight;
 
       if (bottom >= window.innerHeight) {
         textarea.style.top = "auto";
@@ -61,7 +61,7 @@ export default function useTextArea() {
         textarea.style.left = "auto";
         textarea.style.right = 0;
       } else {
-        textarea.style.width = width * scale + "px";
+        textarea.style.width = (width || 1) * scale + "px";
       }
 
       xy.x2 = x1 + width
@@ -77,7 +77,7 @@ export default function useTextArea() {
       );
 
       const width = longest;
-      const height = lines.length * 30;
+      const height = textarea.scrollHeight;
 
       if (bottom >= window.innerHeight) {
         textarea.style.top = "auto";
@@ -89,7 +89,7 @@ export default function useTextArea() {
         textarea.style.left = "auto";
         textarea.style.right = 0;
       } else {
-        textarea.style.width = width * scale + "px";
+        textarea.style.width = (width || 1) * scale + "px";
       }
 
       xy.x2 = x1 + width
@@ -99,7 +99,7 @@ export default function useTextArea() {
     
     textarea.addEventListener("focusout", (e) => {
       writing(null)
-      updateElement(id, { text: e.target.value, ...xy }, setElements, elements, true);
+      setRerender(state => !state)
       document.body.removeChild(textarea);
     });
   }

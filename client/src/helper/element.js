@@ -125,6 +125,8 @@ export function updateElement(
     return ele
   });
 
+  console.log(stateCopy)
+
   setState(stateCopy, overwrite);
 }
 

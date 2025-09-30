@@ -47,7 +47,7 @@ export default function useCanvas() {
     selectedElement,
     setSelectedElement,
     undo,
-    redo,
+    redo,rerender, setRerender
   } = useAppContext();
 
   const canvasRef = useRef(null);
@@ -59,7 +59,6 @@ export default function useCanvas() {
   const [cursor, setCursor] = useState("default");
   const [mouseAction, setMouseAction] = useState({ x: 0, y: 0 });
   const [resizeOldDementions, setResizeOldDementions] = useState(null);
-  const [rerender, setRerender] = useState(null)
 
   const createTextArea = useTextArea()
 
@@ -75,7 +74,8 @@ export default function useCanvas() {
 
     if (element?.tool == "text") {
       createTextArea(element, true)
-      setRerender(v4())
+      setSelectedElement(null)
+      setRerender(state => !state)
     }
   }
 
@@ -106,6 +106,7 @@ export default function useCanvas() {
 
     if (selectedTool == "selection") {
       const element = getElementPosition(clientX, clientY, elements);
+      // console.log(element)
 
       if (element) {
         const offsetX = clientX - element.x1;
