@@ -1,6 +1,9 @@
 {
+  "name": "sketchflow",
+  "version": "1.0.0",
   "scripts": {
     "client": "npm --prefix client run dev",
-    "server": "npm --prefix server run dev"
+    "server": "npm --prefix server run dev",
+    "build": "npm --prefix client run build && npm --prefix server run build"
   }
 }
